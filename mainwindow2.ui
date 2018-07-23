@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout_4">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <widget class="MplWidget" name="wavelet_canvas" native="true"/>
+        </item>
+        <item>
+         <widget class="MplWidget" name="hodograph_canvas" native="true"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="QLineEdit" name="file_to_load_from_line_edit">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="placeholderText">
+             <string>Filename to load from</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="file_to_save_to_line_edit">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="placeholderText">
+             <string>File to save to</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lower_altitude_bound_line_edit">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="placeholderText">
+             <string>Lower altitude bound (km)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="upper_altitude_bound_line_edit">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="placeholderText">
+             <string>Upper altitude bound (km)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lower_scale_bound_line_edit">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="placeholderText">
+             <string>Lower scale bound</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="upper_scale_bound_line_edit">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="placeholderText">
+             <string>Upper scale bound</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="start_analysis_button">
+            <property name="whatsThis">
+             <string>Loads data from file and displays entire power spectrum</string>
+            </property>
+            <property name="text">
+             <string>Start analysis</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="plot_altitude_window_button">
+            <property name="text">
+             <string>Plot altitude window</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="display_quarter_max_power_surface_button">
+            <property name="text">
+             <string>Display quarter max </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="plot_hodograph_from_detransformed_data_button">
+            <property name="text">
+             <string>Plot hodograph from de-transformed quarter max data</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="get_gravity_wave_params_button">
+            <property name="whatsThis">
+             <string>Power surface window acceptable?</string>
+            </property>
+            <property name="text">
+             <string>Get gravity wave parameters (Stokes and Hodograph)</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QLineEdit" name="lower_altitude_bound_hodo_line_edit">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="placeholderText">
+             <string>Lower altitude bound (km)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="upper_altitude_bound_hodo_line_edit">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="placeholderText">
+             <string>Upper altitude bound (km)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="plot_hodograph_altitude_window_button">
+            <property name="text">
+             <string>Plot hodograph from altitude range</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="fit_ellipses_to_wind_data_button">
+            <property name="text">
+             <string>Fit ellipses to hodograph and return parameters</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="save_gravity_wave_params_button">
+            <property name="text">
+             <string>Save gravity wave params</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="save_method_1_cbox">
+            <property name="text">
+             <string>Save method 1 ellipse fit</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="save_method_2_cbox">
+            <property name="text">
+             <string>Save method 2 ellipse fit</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="show_me_where_i_am">
+            <property name="text">
+             <string>Show me where I am</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MplWidget</class>
+   <extends>QWidget</extends>
+   <header>mplwidget</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
