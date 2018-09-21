@@ -7,8 +7,8 @@ from PyQt5.QtWidgets import *
 from wavelet_hodo_utils import fitellipse_m1, fitellipse_m2, Gravity_Wave_Data, Wavelet, Hodograph, find_nearest_index
 import warnings
 import numpy as np
-warnings.filterwarnings('ignore')
 
+warnings.filterwarnings('ignore')
 
 class MainWindow(Ui_MainWindow):
     
@@ -87,6 +87,8 @@ class MainWindow(Ui_MainWindow):
         self.wavelet_canvas.canvas.ax.set_ylim(ymin = self.wavelet.s0)
         self.wavelet_canvas.canvas.ax.set_title(self.in_file_name)
         self.wavelet_canvas.canvas.ax.contourf(self.wavelet.alt, self.wavelet.fourier_period[1:], self.wavelet.power_spectrum)
+        self.wavelet_canvas.canvas.ax.set_ylabel("Scale (s)")
+        self.wavelet_canvas.canvas.ax.set_xlabel("Altitude (m)")
         self.wavelet_canvas.canvas.draw()
 
     def _get_gravity_wave_params_stokes_and_hodo(self):
@@ -167,7 +169,8 @@ class MainWindow(Ui_MainWindow):
             self.wavelet_canvas.canvas.ax.plot(self.windowed_alt[alt], self.windowed_scales[scale], 'rx', ms = 3)
             self.wavelet_canvas.canvas.ax.contourf(self.windowed_alt[left:right], self.windowed_scales[bottom:top], self.windowed_power_spectrum[bottom:top, left:right])
             self.windowed_power_spectrum_for_stokes = self.windowed_power_spectrum[bottom:top, left:right]
-            
+            self.wavelet_canvas.canvas.ax.set_ylabel("Scale (s)")
+            self.wavelet_canvas.canvas.ax.set_xlabel("Altitude (m)")
             s1, s2, ellipse_semi_major_axis_method_1, ellipse_semi_major_axis_method_2 = self.wavelet.return_window_indices(self.scale_1, self.scale_2, self.alt_1, self.alt_2)
             self.bottom_scale_index = bottom + s1; self.top_scale_index = top + s1 #for detransforming
             self.bottom_alt_index = left + ellipse_semi_major_axis_method_1; self.top_alt_index = right + ellipse_semi_major_axis_method_1
@@ -364,7 +367,6 @@ if __name__ == '__main__':
     form = QMainWindow()
     m_gui = MainWindow(form)
     form.show()
-
     app.exec_()
 
 
