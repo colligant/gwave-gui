@@ -1,14 +1,15 @@
 import pickle
-from gravity_wave_gui_UI import Ui_MainWindow
+import time
 import sys
 import os
+from gravity_wave_gui_UI import Ui_MainWindow
 from PyQt5.QtCore import * 
 from PyQt5.QtWidgets import * 
 from wavelet_hodo_utils import fitellipse_m1, fitellipse_m2, Gravity_Wave_Data, Wavelet, Hodograph, find_nearest_index
 import warnings
 import numpy as np
-warnings.filterwarnings('ignore')
 
+warnings.filterwarnings('ignore')
 
 class MainWindow(Ui_MainWindow):
     
@@ -18,6 +19,8 @@ class MainWindow(Ui_MainWindow):
         ''' Change this variable to adapt to your filesystem setup '''
         self.data_directory = 'EclipseData/'
         ####################################
+        
+
         self.in_file_name = ''
         self.hodograph = ''
         self.wavelet = ''
@@ -44,24 +47,24 @@ class MainWindow(Ui_MainWindow):
         self.top_scale_index = ''
         self.bottom_alt_index = ''
         self.top_alt_index = ''
-        self.scale_1 = ''
-        self.scale_2 = ''
-        self.alt_1 = ''
-        self.alt_2 = ''
+        self.windowed_spectrum_lower_scale_bound = ''
+        self.windowed_spectrum_upper_scale_bound = ''
+        self.windowed_spectrum_lower_altitude = ''
+        self.windowed_spectrum_upper_altitude = ''
         self.windowed_alt = ''
         self.windowed_scales = ''
         self.windowed_power_spectrum = ''
         self.setupUi(dialog)
-        self.start_analysis_button.clicked.connect(self._start_analysis)
-        self.plot_altitude_window_button.clicked.connect(self._plot_windowed_wavelet_power_spectrum)
-        self.display_quarter_max_power_surface_button.clicked.connect(self._display_quarter_max)
-        self.get_gravity_wave_params_button.clicked.connect(self._get_gravity_wave_params_stokes_and_hodo)
-        self.plot_hodograph_from_detransformed_data_button.clicked.connect(self._plot_detransformed_hodograph)
-        self.plot_hodograph_altitude_window_button.clicked.connect(self._plot_raw_hodograph)
-        self.fit_ellipses_to_wind_data_button.clicked.connect(self._fit_and_plot_raw_hodo)
-        self.save_gravity_wave_params_button.clicked.connect(self._save_gravity_wave_params)
+        self.start_analysis_button.clicked.connect(self.start_analysis)
+        self.plot_altitude_window_button.clicked.connect(self.plot_windowed_wavelet_power_spectrum)
+        self.display_quarter_max_power_surface_button.clicked.connect(self.display_three_quarter_max)
+        self.get_gravity_wave_params_button.clicked.connect(self.get_gravity_wave_params_stokes_and_hodo)
+        self.plot_hodograph_from_detransformed_data_button.clicked.connect(self.plot_detransformed_hodograph)
+        self.plot_hodograph_altitude_window_button.clicked.connect(self.plot_raw_hodograph)
+        self.fit_ellipses_to_wind_data_button.clicked.connect(self.fit_and_plot_raw_hodo)
+        self.save_gravity_wave_params_button.clicked.connect(self.save_gravity_wave_params)
 
-    def _start_analysis(self):
+    def start_analysis(self):
         ''' Loads from the data file specified, creates hodograph and wavelet objects, plots wavelet power spectrum
         ''' 
         try:
@@ -75,43 +78,42 @@ class MainWindow(Ui_MainWindow):
             
             self.hodograph = Hodograph(self.data_directory + self.in_file_name)
             self.wavelet = Wavelet(self.data_directory + self.in_file_name)
-            self._plot_wavelet_power_spectrum()
+            self.plot_wavelet_power_spectrum()
 
-        except Exception as e:
-            print(e)
-
-    def _plot_wavelet_power_spectrum(self):
+        except (IsADirectoryError, FileNotFoundError) as e:
+            print("Please enter the correct filepath and filename")
+ 
+    def plot_wavelet_power_spectrum(self):
         ''' Plots a power spectrum from the wavelet object on the wavelet canvas. '''
         self.wavelet_canvas.canvas.ax.clear()
         self.wavelet_canvas.canvas.ax.plot(self.wavelet.alt, self.wavelet.ucoi[:-1], 'k')
         self.wavelet_canvas.canvas.ax.set_ylim(ymin = self.wavelet.s0)
         self.wavelet_canvas.canvas.ax.set_title(self.in_file_name)
         self.wavelet_canvas.canvas.ax.contourf(self.wavelet.alt, self.wavelet.fourier_period[1:], self.wavelet.power_spectrum)
+        self.wavelet_canvas.canvas.ax.set_ylabel("Scale (s)")
+        self.wavelet_canvas.canvas.ax.set_xlabel("Altitude (m)")
         self.wavelet_canvas.canvas.draw()
 
-    def _get_gravity_wave_params_stokes_and_hodo(self):
+    def get_gravity_wave_params_stokes_and_hodo(self):
         '''
         Prints gravity wave parameters 
         '''
-        try:
-            self.u_inverted = self.wavelet.invert_wavelet_coefficients(self.wavelet.u_wavelet, self.bottom_scale_index, self.top_scale_index, self.bottom_alt_index, self.top_alt_index)
-            self.v_inverted = self.wavelet.invert_wavelet_coefficients(self.wavelet.v_wavelet, self.bottom_scale_index, self.top_scale_index, self.bottom_alt_index, self.top_alt_index)
-            self.phi_stokes, self.omega_stokes = self.wavelet.direction_and_frequency_from_stokes_params(self.u_inverted, self.v_inverted)
-            ellipse_angle_method_1 = self.ellipse_angle_method_1
-            ellipse_angle_method_2 = self.ellipse_angle_method_2
+        self.u_inverted = self.wavelet.invert_wavelet_coefficients(self.wavelet.u_wavelet, self.bottom_scale_index, self.top_scale_index, self.bottom_alt_index, self.top_alt_index)
+        self.v_inverted = self.wavelet.invert_wavelet_coefficients(self.wavelet.v_wavelet, self.bottom_scale_index, self.top_scale_index, self.bottom_alt_index, self.top_alt_index)
+        self.phi_stokes, self.omega_stokes = self.wavelet.direction_and_frequency_from_stokes_params(self.u_inverted, self.v_inverted)
+        ellipse_angle_method_1 = self.ellipse_angle_method_1
+        ellipse_angle_method_2 = self.ellipse_angle_method_2
 
-            print("-----Stokes-----")
-            print("AXR:", self.omega_stokes, "PHI:", np.rad2deg(self.phi_stokes))
-            print("-----M1-----")
-            print("AXR:", self.ellipse_semi_minor_axis_method_1/self.ellipse_semi_major_axis_method_1, 'PHI:', ellipse_angle_method_1, 'ETA:', self.eta)
-            print("-----M2-----")
-            print("AXR:", self.ellipse_semi_minor_axis_method_2/self.ellipse_semi_major_axis_method_2, 'PHI:', ellipse_angle_method_2, "ETA:", self.eta)
-            print("------------")
+        print("-----Stokes-----")
+        print("AXR:", self.omega_stokes, "PHI:", np.rad2deg(self.phi_stokes))
+        print("-----M1-----")
+        print("AXR:", self.ellipse_semi_minor_axis_method_1/self.ellipse_semi_major_axis_method_1, 'PHI:', ellipse_angle_method_1, 'ETA:', self.eta)
+        print("-----M2-----")
+        print("AXR:", self.ellipse_semi_minor_axis_method_2/self.ellipse_semi_major_axis_method_2, 'PHI:', ellipse_angle_method_2, "ETA:", self.eta)
+        print("------------")
 
-        except Exception as e:
-            print(e)
 
-    def _fit_and_plot_ellipses(self, u, v, temp, alt, MplWidget, method = 'STOKES'):
+    def fit_and_plot_ellipses(self, u, v, temp, alt, MplWidget, method = 'STOKES'):
         ''' Plots ellipses on hodograph canvas '''
         u_windowed = u.real
         v_windowed = v.real
@@ -147,7 +149,7 @@ class MainWindow(Ui_MainWindow):
             except Exception as e:
                 print(e)
 
-    def _display_quarter_max(self):
+    def display_three_quarter_max(self):
         ''' Plots 3/4 max from windowed power spectrum after Zink, 2001. Also plots a box around
          the window being viewed on the wavelet canvas '''
         try:
@@ -156,21 +158,22 @@ class MainWindow(Ui_MainWindow):
             max_idx = np.where(S == np.max(S))
             scale = max_idx[0][0]; alt = max_idx[1][0]
             self.g_wave_location = alt
-            one_quarter = 3*self.windowed_power_spectrum[max_idx]/4
-            bottom = find_nearest_index(S[:scale, alt], one_quarter) #returns row index
-            top = find_nearest_index(S[scale:, alt], one_quarter) #returns row index
+            three_quarter = 3*self.windowed_power_spectrum[max_idx]/4
+            bottom = find_nearest_index(S[:scale, alt], three_quarter) #returns row index
+            top = find_nearest_index(S[scale:, alt], three_quarter) #returns row index
             top += scale
-            left = find_nearest_index(S[scale,:alt].T, one_quarter) #returns column index
-            right = find_nearest_index(S[scale, alt:].T, one_quarter) #returns column index
+            left = find_nearest_index(S[scale,:alt].T, three_quarter) #returns column index
+            right = find_nearest_index(S[scale, alt:].T, three_quarter) #returns column index
             right += alt
             self.wavelet_canvas.canvas.ax.clear()
             self.wavelet_canvas.canvas.ax.plot(self.windowed_alt[alt], self.windowed_scales[scale], 'rx', ms = 3)
             self.wavelet_canvas.canvas.ax.contourf(self.windowed_alt[left:right], self.windowed_scales[bottom:top], self.windowed_power_spectrum[bottom:top, left:right])
             self.windowed_power_spectrum_for_stokes = self.windowed_power_spectrum[bottom:top, left:right]
-            
-            s1, s2, ellipse_semi_major_axis_method_1, ellipse_semi_major_axis_method_2 = self.wavelet.return_window_indices(self.scale_1, self.scale_2, self.alt_1, self.alt_2)
+            self.wavelet_canvas.canvas.ax.set_ylabel("Scale (s)")
+            self.wavelet_canvas.canvas.ax.set_xlabel("Altitude (m)")
+            s1, s2, a1, a2 = self.wavelet.return_window_indices(self.windowed_spectrum_lower_scale_bound, self.windowed_spectrum_upper_scale_bound, self.windowed_spectrum_lower_altitude, self.windowed_spectrum_upper_altitude)
             self.bottom_scale_index = bottom + s1; self.top_scale_index = top + s1 #for detransforming
-            self.bottom_alt_index = left + ellipse_semi_major_axis_method_1; self.top_alt_index = right + ellipse_semi_major_axis_method_1
+            self.bottom_alt_index = left + a1; self.top_alt_index = right + a1
             self.wavelet_canvas.canvas.draw()
 
             if self.show_me_where_i_am.isChecked():
@@ -194,11 +197,12 @@ class MainWindow(Ui_MainWindow):
                 ls2 = [bottom_scale_index, bottom_scale_index]
                 self.hodograph_canvas.canvas.ax.plot(ls1, ls2, 'r-')
                 self.hodograph_canvas.canvas.draw()
-            
-        except Exception as e:
-            print(e)
+        except (TypeError) as e:
+            print("Enter a valid window to analyze")
 
-    def _plot_raw_hodograph(self):
+
+
+    def plot_raw_hodograph(self):
         try:
             if self.lower_altitude_bound_hodo_line_edit.text() is not '':
                 lower_bound = float(self.lower_altitude_bound_hodo_line_edit.text())*1000
@@ -233,18 +237,18 @@ class MainWindow(Ui_MainWindow):
         except Exception as e:
             print(e)
     
-    def _plot_windowed_wavelet_power_spectrum(self):
+    def plot_windowed_wavelet_power_spectrum(self):
         self.wavelet_canvas.canvas.ax.clear()
         try:
-            self.scale_1 = float(self.lower_scale_bound_line_edit.text())
-            self.scale_2 = float(self.upper_scale_bound_line_edit.text())
-            self.alt_1 = float(self.lower_altitude_bound_line_edit.text())*1000 
-            self.alt_2 = float(self.upper_altitude_bound_line_edit.text())*1000
-            if self.alt_1 < min(self.wavelet.alt):
-                self.alt_1 = min(self.wavelet.alt) 
-            if self.alt_2 > max(self.wavelet.alt):
-                self.alt_2 = max(self.wavelet.alt)
-            self.windowed_alt, self.windowed_scales, self.windowed_power_spectrum = self.wavelet.return_windowed_arrays(self.scale_1, self.scale_2, self.alt_1, self.alt_2)
+            self.windowed_spectrum_lower_scale_bound = float(self.lower_scale_bound_line_edit.text())
+            self.windowed_spectrum_upper_scale_bound = float(self.upper_scale_bound_line_edit.text())
+            self.windowed_spectrum_lower_altitude = float(self.lower_altitude_bound_line_edit.text())*1000 
+            self.windowed_spectrum_upper_altitude = float(self.upper_altitude_bound_line_edit.text())*1000
+            if self.windowed_spectrum_lower_altitude < min(self.wavelet.alt):
+                self.windowed_spectrum_lower_altitude = min(self.wavelet.alt) 
+            if self.windowed_spectrum_upper_altitude > max(self.wavelet.alt):
+                self.windowed_spectrum_upper_altitude = max(self.wavelet.alt)
+            self.windowed_alt, self.windowed_scales, self.windowed_power_spectrum = self.wavelet.return_windowed_arrays(self.windowed_spectrum_lower_scale_bound, self.windowed_spectrum_upper_scale_bound, self.windowed_spectrum_lower_altitude, self.windowed_spectrum_upper_altitude)
             self.wavelet_canvas.canvas.ax.set_title(self.in_file_name)
             self.wavelet_canvas.canvas.ax.contourf(self.windowed_alt, self.windowed_scales, self.windowed_power_spectrum)
             self.wavelet_canvas.canvas.draw()
@@ -254,30 +258,30 @@ class MainWindow(Ui_MainWindow):
                 self.hodograph_canvas.canvas.ax.set_ylim(ymin = self.wavelet.s0)
                 self.hodograph_canvas.canvas.ax.set_title(self.in_file_name)
                 self.hodograph_canvas.canvas.ax.contourf(self.wavelet.alt, self.wavelet.fourier_period[1:], self.wavelet.power_spectrum)
-                ls1 = [self.alt_1, self.alt_1]
-                ls2 = [self.scale_1, self.scale_2]
+                ls1 = [self.windowed_spectrum_lower_altitude, self.windowed_spectrum_lower_altitude]
+                ls2 = [self.windowed_spectrum_lower_scale_bound, self.windowed_spectrum_upper_scale_bound]
                 self.hodograph_canvas.canvas.ax.plot(ls1, ls2, 'r-')
-                ls1 = [self.alt_2, self.alt_2]
-                ls2 = [self.scale_1, self.scale_2]
+                ls1 = [self.windowed_spectrum_upper_altitude, self.windowed_spectrum_upper_altitude]
+                ls2 = [self.windowed_spectrum_lower_scale_bound, self.windowed_spectrum_upper_scale_bound]
                 self.hodograph_canvas.canvas.ax.plot(ls1, ls2, 'r-')
-                ls1 = [self.alt_1, self.alt_2]
-                ls2 = [self.scale_1, self.scale_1]
+                ls1 = [self.windowed_spectrum_lower_altitude, self.windowed_spectrum_upper_altitude]
+                ls2 = [self.windowed_spectrum_lower_scale_bound, self.windowed_spectrum_lower_scale_bound]
                 self.hodograph_canvas.canvas.ax.plot(ls1, ls2, 'r-')
-                ls1 = [self.alt_1, self.alt_2]
-                ls2 = [self.scale_2, self.scale_2]
+                ls1 = [self.windowed_spectrum_lower_altitude, self.windowed_spectrum_upper_altitude]
+                ls2 = [self.windowed_spectrum_upper_scale_bound, self.windowed_spectrum_upper_scale_bound]
                 self.hodograph_canvas.canvas.ax.plot(ls1, ls2, 'r-')
                 self.hodograph_canvas.canvas.draw()
-        except Exception as e:
-            print(e)
+        except (ValueError, TypeError, AttributeError) as e:
+            print("Please enter a valid altitude window")
 
-    def _print_raw_hodo_params(self):
+    def print_raw_hodo_params(self):
         print('---Raw Hodo Params---')
         print("-----M1-----")
         print("AXR:", self.raw_hodo_ellipse_semi_minor_axis_method_1/self.raw_hodo_ellipse_semi_major_axis_method_1, 'PHI:', 180*self.raw_hodo_ellipse_angle_method_1/np.pi, 'ETA:', self.raw_hodo_eta)
         print("-----M2-----")
         print("AXR:", self.raw_hodo_ellipse_semi_minor_axis_method_2/self.raw_hodo_ellipse_semi_major_axis_method_2, 'PHI:', 180*self.raw_hodo_ellipse_angle_method_2/np.pi, "ETA:", self.raw_hodo_eta)
 
-    def _fit_and_plot_raw_hodo(self):
+    def fit_and_plot_raw_hodo(self):
         try:
             if self.lower_altitude_bound_hodo_line_edit.text() != '':
                 lower_bound = float(self.lower_altitude_bound_hodo_line_edit.text())*1000
@@ -316,13 +320,13 @@ class MainWindow(Ui_MainWindow):
         except Exception as e:
             print(e)
 
-    def _plot_detransformed_hodograph(self):
+    def plot_detransformed_hodograph(self):
         self.hodograph_canvas.canvas.ax.clear()
         uinv = self.wavelet.invert_wavelet_coefficients(self.wavelet.u_wavelet, self.bottom_scale_index, self.top_scale_index, self.bottom_alt_index, self.top_alt_index)
         vinv = self.wavelet.invert_wavelet_coefficients(self.wavelet.v_wavelet, self.bottom_scale_index, self.top_scale_index, self.bottom_alt_index, self.top_alt_index)
         alt = self.wavelet.alt[self.bottom_alt_index:self.top_alt_index]
         temp = self.wavelet.temp[self.bottom_alt_index:self.top_alt_index]
-        self._fit_and_plot_ellipses(uinv, vinv, temp, alt, self.hodograph_canvas)
+        self.fit_and_plot_ellipses(uinv, vinv, temp, alt, self.hodograph_canvas)
         self.hodograph_canvas.canvas.ax.plot(uinv, vinv, 'rx', ms = 2)
         self.hodograph_canvas.canvas.ax.annotate(alt[-1], (uinv[-1], vinv[-1]))
         self.hodograph_canvas.canvas.ax.annotate(alt[0], (uinv[0], vinv[0]))
@@ -333,7 +337,7 @@ class MainWindow(Ui_MainWindow):
         data_windowed = [data_array[i] for i, a in enumerate(alt_array) if a > arange[0] and a < arange[1]]
         return np.asarray(data_windowed)
 
-    def _save_gravity_wave_params(self):
+    def save_gravity_wave_params(self):
         if self.file_to_save_to_line_edit.text() is not '':
             fname = self.file_to_save_to_line_edit.text()
             if self.eta < 0: 
@@ -364,7 +368,6 @@ if __name__ == '__main__':
     form = QMainWindow()
     m_gui = MainWindow(form)
     form.show()
-
     app.exec_()
 
 

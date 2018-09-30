@@ -72,12 +72,8 @@ class Gravity_Wave_Data:
 
     
     def dump_data(self, out_file):
-        try:
-            df = pd.DataFrame(self.data_array, columns = self.columns)
-            df.to_pickle(out_file)
-        
-        except Exception as e:
-            print(e)
+        df = pd.DataFrame(self.data_array, columns = self.columns)
+        df.to_csv(out_file, mode = 'a', header = False)
 
 
 class Wavelet(Data_Methods):
