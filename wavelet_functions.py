@@ -1,6 +1,7 @@
 from scipy.special._ufuncs import gammainc, gamma
 import numpy as np
 from scipy.optimize import fminbound
+
 __author__ = 'Evgeniya Predybaylo'
 
 
@@ -128,8 +129,10 @@ def wavelet(Y, dt, pad=0, dj=-1, s0 = -1, J1=-1, mother=-1, param=-1, mean = Fal
 
 	#....construct SCALE array & empty PERIOD & WAVE arrays
 	j = np.arange(0,J1+1)
+	print(J1)
 	scale = s0 * 2. ** (j * dj)
 	wave = np.zeros(shape=(int(J1 + 1), n), dtype = complex)  # define the wavelet array
+	print(wave.shape)
 	# loop through all scales and compute transform
 	for a1 in range(0, int(J1+1)):
 		daughter, fourier_factor, coi, dofmin = wave_bases(mother, k, scale[a1], param)
