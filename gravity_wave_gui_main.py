@@ -300,22 +300,22 @@ class MainWindow(Ui_MainWindow):
                 self.hodograph_canvas.canvas.ax.annotate(alt[-1],(u[-1],v[-1]))
                 self.hodograph_canvas.canvas.ax.annotate(alt[0],(u[0],v[0]))
                 self.hodograph_canvas.canvas.ax.set_title("Hodograph, raw data")
-                self._fit_and_plot_ellipses(u, v, temp, alt, self.hodograph_canvas, method = 'HODOGRAPH')
+                self.fit_and_plot_ellipses(u, v, temp, alt, self.hodograph_canvas, method = 'HODOGRAPH')
                 self.hodograph_canvas.canvas.draw()
-                self._print_raw_hodo_params()
+                self.print_raw_hodo_params()
             else:
                 self.hodograph_canvas.canvas.ax.clear()
                 u = self.wavelet.u[self.bottom_alt_index:self.top_alt_index]
                 v = self.wavelet.v[self.bottom_alt_index:self.top_alt_index]
                 alt = self.wavelet.alt[self.bottom_alt_index:self.top_alt_index]
                 temp = self.wavelet.temp[self.bottom_alt_index:self.top_alt_index]
-                self._fit_and_plot_ellipses(u, v, temp, alt, self.hodograph_canvas, method = 'HODOGRAPH')
+                self.fit_and_plot_ellipses(u, v, temp, alt, self.hodograph_canvas, method = 'HODOGRAPH')
                 self.hodograph_canvas.canvas.ax.plot(u, v, 'rx', ms = 2)
                 self.hodograph_canvas.canvas.ax.annotate(alt[-1],(u[-1],v[-1]))
                 self.hodograph_canvas.canvas.ax.annotate(alt[0],(u[0],v[0]))
                 self.hodograph_canvas.canvas.ax.set_title("Hodograph, raw data")
                 self.hodograph_canvas.canvas.draw()
-                self._print_raw_hodo_params()
+                self.print_raw_hodo_params()
 
         except Exception as e:
             print(e)
@@ -340,6 +340,7 @@ class MainWindow(Ui_MainWindow):
     def save_gravity_wave_params(self):
         if self.file_to_save_to_line_edit.text() is not '':
             fname = self.file_to_save_to_line_edit.text()
+            self.phi_stokes = np.rad2deg(self.phi_stokes)
             if self.eta < 0: 
                 self.phi_stokes += 180
                 self.ellipse_angle_method_1 += 180
@@ -353,6 +354,7 @@ class MainWindow(Ui_MainWindow):
             if self.save_method_2_cbox.isChecked() or self.save_method_1_cbox.isChecked():
                 loc = self.g_wave_location
                 gwave = Gravity_Wave_Data()
+                print(self.phi_stokes)
                 gwave.add_row_of_data(self.in_file_name[8:10], self.omega_stokes, axr_hodo, self.phi_stokes, phi_hodo, loc, 
                     self.bottom_scale_index, self.top_scale_index, self.bottom_alt_index, self.top_alt_index)
                 gwave.dump_data(self.file_to_save_to_line_edit.text())
